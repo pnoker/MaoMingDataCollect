@@ -52,13 +52,32 @@ public class QueryPara {
 	/**
 	 * 正响应解析
 	 */
-	public float success(PackageProcessor p) {
-		float value = 0;
-		if (p.bytesToString(11, 12).equals("1505")) {
-			value = p.bytesToFloatSmall(13, 16);
-			logWrite.write("水表流量值为:" + value + "M³");
+
+	public Result data(PackageProcessor p, String typeserial) {
+		Result dataResult = new Result();
+		dataResult.setSuccess(false);
+		String longAddress = MainFunction.item.get(typeserial).split("#")[0];
+		if (longAddress.equals("E119000000417A00")) {// 长地址唯一性校验
+			String cz = MainFunction.item.get(typeserial).split("#")[4];// 设备的从站地址
+			String md = MainFunction.item.get(typeserial).split("#")[5];// Modbus命令号
+			if (p.bytesToString(3, 13).toUpperCase().equals(longAddress + "01" + cz + md)) {
+				float value1 = p.bytesToInt(17, 20);
+				int value2 = (int) (p.bytesToInt(21, 24) * 0.1);
+				logWrite.write("IO的瞬时值为:" + value1);
+				logWrite.write("IO的累计值为:" + value2);
+				dataResult.setSuccess(true);
+				dataResult.setInstant(value1);
+				dataResult.setTotal(value2);
+			}
+		} else if (longAddress.equals(p.bytesToString(3, 10))) {// 长地址唯一性校验
+			if (p.bytesToString(11, 12).equals("1505")) {// 水表流量值
+				float value = p.bytesToFloatSmall(13, 16);
+				logWrite.write("水表流量值为:" + value + "M³");
+				dataResult.setSuccess(true);
+				dataResult.setTotal(value);
+			}
 		}
-		return value;
+		return dataResult;
 	}
 
 	/**
@@ -100,26 +119,6 @@ public class QueryPara {
 		}
 	}
 
-	public Result data(PackageProcessor p, String typeserial) {
-		Result dataResult = new Result();
-		dataResult.setSuccess(false);
-		String longAddress = MainFunction.item.get(typeserial).split("#")[0];
-		if (longAddress.equals("E119000000417A00")) {
-			String cz = MainFunction.item.get(typeserial).split("#")[4];// 设备的从站地址
-			String md = MainFunction.item.get(typeserial).split("#")[5];// Modbus命令号
-			if (p.bytesToString(3, 13).toUpperCase().equals(longAddress + "01" + cz + md)) {
-				float value1 = p.bytesToInt(17, 20);
-				int value2 = (int) (p.bytesToInt(21, 24) * 0.1);
-				logWrite.write("IO的瞬时值为:" + value1);
-				logWrite.write("IO的累计值为:" + value2);
-				dataResult.setSuccess(true);
-				dataResult.setInstant(value1);
-				dataResult.setTotal(value2);
-			}
-		}
-		return dataResult;
-	}
-
 	public Result query(BaseInfo base, byte[] send, String typeserial) {
 		Result dataResult = new Result();
 		boolean timeOut = false;
@@ -134,7 +133,7 @@ public class QueryPara {
 			datagramSocket = new DatagramSocket(base.getLocalport());
 			datagramSend = new DatagramPacket(send, send.length, InetAddress.getByName(base.getIpaddress()),
 					base.getPort());
-			num = 0;// 计数清零,并且 +1
+			num = 0;// 计数清零
 			start = (new Date()).getTime();
 		} catch (IOException e) {
 			logWrite.write(e.getMessage());
@@ -148,7 +147,7 @@ public class QueryPara {
 				try {
 					datagramSocket.send(datagramSend);
 					logWrite.write("发送:" + getHexDatagram(send, send.length));
-					num++;
+					num++;// 计数+1
 					timeOut = false;
 				} catch (IOException e) {
 					logWrite.write(e.getMessage());
@@ -162,13 +161,41 @@ public class QueryPara {
 					p = new PackageProcessor(receive);
 					String hexDatagram = getHexDatagram(datagramReceive.getData(), datagramReceive.getLength());
 					String datastart = p.bytesToString(0, 2);
+					Result data = new Result();
 					switch (datastart) {
-					/* 正响应 或者是负响应二 */
+					/* 远程读取 水表 返回的正响应 或者是负响应二 */
 					case "026a00":
-						logWrite.write("成功:" + hexDatagram);
-						total = success(p);
-						timeOut = true;
-						reConnect = false;
+						logWrite.write("水表应用数据，成功:" + hexDatagram);
+						data = data(p, typeserial);
+						if (data.isSuccess()) {
+							total = data.getTotal();// 累计量
+							instant = data.getInstant();// 瞬时量
+							timeOut = true;
+							reConnect = false;
+						}
+						end = (new Date()).getTime();
+						if ((end - start) > 8000) {
+							timeOut = true;
+							reConnect = false;
+							dataResult.setSuccess(false);// 无用数据接收超时
+						}
+						break;
+					/* 远程读取 IO 返回的正响应 */
+					case "025500":
+						logWrite.write("IO应用数据,成功:" + hexDatagram);
+						data = data(p, typeserial);
+						if (data.isSuccess()) {
+							total = data.getTotal();// 累计量
+							instant = data.getInstant();// 瞬时量
+							timeOut = true;
+							reConnect = false;
+						}
+						end = (new Date()).getTime();
+						if ((end - start) > 8000) {
+							timeOut = true;
+							reConnect = false;
+							dataResult.setSuccess(false);// 无用数据接收超时
+						}
 						break;
 					/* 负响应 一 */
 					case "026980":
@@ -183,21 +210,6 @@ public class QueryPara {
 						logWrite.write("网关连接成功:" + hexDatagram);
 						timeOut = true;
 						reConnect = false;
-						break;
-					case "025500":
-						logWrite.write("仪表应用数据:" + hexDatagram);
-						Result data = data(p, typeserial);
-						if (data.isSuccess()) {
-							total = data.getTotal();
-							timeOut = true;
-							reConnect = false;
-						}
-						end = (new Date()).getTime();
-						if ((end - start) > 8000) {
-							timeOut = true;
-							reConnect = false;
-							dataResult.setSuccess(false);// 无用数据接收超时
-						}
 						break;
 					default:
 						logWrite.write("其他:" + hexDatagram);
