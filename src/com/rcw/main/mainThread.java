@@ -1,5 +1,6 @@
 package com.rcw.main;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,22 +30,39 @@ public class mainThread {
 	}
 
 	public float query(String typeserial, int serial, String table, String reachtime) {
+		Sqlserver connect = new Sqlserver();
 		QueryPara queryPara = new QueryPara();
 		Generation generation = new Generation();
 		Result dataResult = new Result();
-		byte[] connectCode = generation.connect();// 连接网关命令，固定写法
-		byte[] sendCode = generation.queryCommand(typeserial, serial);//发送查询命令
+		byte[] connectCode = generation.connect();// 连接网关的命令，固定写法
+		byte[] sendCode = generation.queryCommand(typeserial, serial);// 查询的命令
 		BaseInfo base = new BaseInfo();
 		base.setIpaddress(MainFunction.item.get(typeserial).split("#")[1]);
 		base.setLocalport(Integer.parseInt(MainFunction.item.get(typeserial).split("#")[2]));
 		base.setPort(6001);
 		queryPara.query(base, connectCode, typeserial);// 连接网关
-		dataResult = queryPara.query(base, sendCode, typeserial);//开始查询，并返回查询结果
-		float total = dataResult.getTotal();
-		float flow = dataResult.getInstant();
-		String info = MainFunction.item.get(typeserial).split("#")[3];
+		dataResult = queryPara.query(base, sendCode, typeserial);// 开始查询，并返回查询结果
+		float total = dataResult.getTotal();// 累计值
+		float flow = dataResult.getInstant();// 瞬时值
+		String info = MainFunction.item.get(typeserial).split("#")[3];// 数据库中存放的位号，例：sia0001
 		if (dataResult.isSuccess()) {
-			insert(table, info, total, reachtime);
+			int tag = 0;
+			if (typeserial.equals("wxio001") || typeserial.equals("wxio002")) {
+				tag = 1;// 累计
+			}
+			String sql = "select top 1 * from " + table + " where typeserial = '" + typeserial + "' and tag = " + tag
+					+ " order by reachtime desc";
+			try {
+				ResultSet rs = connect.executeQuery(sql);
+				float value = rs.getFloat("value");
+				if (total < value) {//累计值校验，累计值不可能比上一次小
+					total = value;
+				}
+			} catch (SQLException e) {
+				System.out.println(e.getMessage());
+			}
+
+			insert(table, info, total, reachtime);// 向数据库中只插入累计量信息，web页面显示的瞬时信息是后期计算得出来的
 			if (info.contains("sia")) {
 				updataOpc(total, info, reachtime);
 			}
@@ -75,12 +93,15 @@ public class mainThread {
 		}
 	}
 
+	/**
+	 * 更新水表的实时累计值，通过计算得出水表的瞬时值
+	 */
 	public void updataOpc(float total, String shuiInfo, String reachtim) {
 		Sqlserver connect = new Sqlserver();
 		String sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim + "' where typeserial = '"
 				+ shuiInfo + "_bt' and tag = 0";
 		try {
-			connect.executeUpdate(sente);
+			connect.executeUpdate(sente);// 更新表头值
 			logWrite.write(sente);
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
@@ -104,21 +125,29 @@ public class mainThread {
 		} else if (shuiInfo.equals("sia0009")) {
 			total += 0;
 		}
+
 		sente = "with table1 as(select DATEDIFF(HOUR,reachtime,'" + reachtim
 				+ "') as hours,value from [shui_opc] where typeserial = '" + shuiInfo + "') ";
-		sente += "update [shui_opc] set value = (select (" + total
-				+ "-table1.value)/table1.hours from table1) ,reachtime = '" + reachtim + "' where typeserial = '"
-				+ shuiInfo + "_0' and tag = 0";
+		sente += "select (" + total + "-table1.value)/table1.hours  from table1";
+		float value = 0;// 默认瞬时值为0
 		try {
-			connect.executeUpdate(sente);
+			ResultSet rs = connect.executeQuery(sente);// 计算瞬时值
 			logWrite.write(sente);
+			value = rs.getFloat(0);
+			if (value >= 30 || value < 0) {// 规范化瞬时量
+				value = 0;
+			}
+			sente = "update [shui_opc] set value = " + value + " ,reachtime = '" + reachtim + "' where typeserial = '"
+					+ shuiInfo + "_0' and tag = 0";
+			connect.executeUpdate(sente);// 更新瞬时量
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
+
 		sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim + "' where typeserial = '"
 				+ shuiInfo + "' and tag = 0";
 		try {
-			connect.executeUpdate(sente);
+			connect.executeUpdate(sente);// 更新累计值，表头值+初始值
 			logWrite.write(sente);
 			connect.free();
 		} catch (SQLException e) {
@@ -126,6 +155,9 @@ public class mainThread {
 		}
 	}
 
+	/**
+	 * 更新两块IO表的实时累计值和瞬时值
+	 */
 	public void updataOpc(float total, float flow, String info, String reachtim) {
 		Sqlserver connect = new Sqlserver();
 		String sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim
