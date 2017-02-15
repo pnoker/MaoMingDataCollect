@@ -55,7 +55,7 @@ public class mainThread {
 			try {
 				ResultSet rs = connect.executeQuery(sql);
 				float value = rs.getFloat("value");
-				if (total < value) {//累计值校验，累计值不可能比上一次小
+				if (total < value) {// 累计值校验，累计值不可能比上一次小
 					total = value;
 				}
 			} catch (SQLException e) {

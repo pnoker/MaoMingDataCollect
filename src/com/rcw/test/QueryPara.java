@@ -69,7 +69,7 @@ public class QueryPara {
 				dataResult.setInstant(value1);
 				dataResult.setTotal(value2);
 			}
-		} else if (longAddress.equals(p.bytesToString(3, 10))) {// 长地址唯一性校验
+		} else if (longAddress.toLowerCase().equals(p.bytesToString(3, 10))) {// 长地址唯一性校验
 			if (p.bytesToString(11, 12).equals("1505")) {// 水表流量值
 				float value = p.bytesToFloatSmall(13, 16);
 				logWrite.write("水表流量值为:" + value + "M³");
