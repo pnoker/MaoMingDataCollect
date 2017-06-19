@@ -9,6 +9,7 @@ import java.util.Date;
 import com.rcw.pojo.BaseInfo;
 import com.rcw.pojo.Result;
 import com.rcw.test.QueryPara;
+import com.rcw.util.AddDatas;
 import com.rcw.util.ExcutePro;
 import com.rcw.util.Generation;
 import com.rcw.util.LogWrite;
@@ -52,7 +53,7 @@ public class mainThread {
 				tag = 1;// 累计
 			}
 			String sql = "select top 1 * from " + table + " where typeserial = '" + typeserial + "' and tag = " + tag
-					+ " order by reachtime desc";
+					+ " order by serial desc";
 			try {
 				ResultSet rs = connect.executeQuery(sql);
 				float value = rs.getFloat("value");
@@ -83,6 +84,25 @@ public class mainThread {
 		if (typeserial.equals("wxio001") || typeserial.equals("wxio002")) {
 			tag = 1;// 累计
 		}
+
+		// 开始 用于数据修复
+		if (typeserial.equals("sia0001")) {
+			value += (0.3 * AddDatas.getTimes("sia0001", 6));// 误差值为-2
+		} else if (typeserial.equals("sia0002")) {
+			value += (-0.3 * AddDatas.getTimes("sia0002", 720));// 误差值为+216
+		} else if (typeserial.equals("sia0003")) {
+			value += (-0.3 * AddDatas.getTimes("sia0003", 10));// 误差值为+3
+		} else if (typeserial.equals("sia0004")) {
+			value += (-0.3 * AddDatas.getTimes("sia0004", 480));// 误差值为+146
+		} else if (typeserial.equals("sia0005")) {
+			value += 1;// 误差值为-1
+		} else if (typeserial.equals("sia0007")) {
+			value += (0.3 * AddDatas.getTimes("sia0007", 120));// 误差值为-38
+		} else if (typeserial.equals("sia0008")) {
+			value += -(0.3 * AddDatas.getTimes("sia0008", 30));// 误差值为+9
+		}
+		// 结束
+
 		String sql = "insert into " + table + "(typeserial,tag, value,reachtime)values('" + typeserial + "'," + tag
 				+ "," + value + ",'" + reachtime + "')";
 		try {
@@ -99,6 +119,25 @@ public class mainThread {
 	 */
 	public void updataOpc(float total, String shuiInfo, String reachtim) {
 		Sqlserver connect = new Sqlserver();
+
+		// 开始 用于数据修复
+		if (shuiInfo.equals("sia0001")) {
+			total += (0.3 * AddDatas.getTimes("sia0001", 6));// 误差值为-2
+		} else if (shuiInfo.equals("sia0002")) {
+			total += (-0.3 * AddDatas.getTimes("sia0002", 720));// 误差值为+216
+		} else if (shuiInfo.equals("sia0003")) {
+			total += (-0.3 * AddDatas.getTimes("sia0003", 10));// 误差值为+3
+		} else if (shuiInfo.equals("sia0004")) {
+			total += (-0.3 * AddDatas.getTimes("sia0004", 480));// 误差值为+146
+		} else if (shuiInfo.equals("sia0005")) {
+			total += 1;// 误差值为-1
+		} else if (shuiInfo.equals("sia0007")) {
+			total += (0.3 * AddDatas.getTimes("sia0007", 120));// 误差值为-38
+		} else if (shuiInfo.equals("sia0008")) {
+			total += -(0.3 * AddDatas.getTimes("sia0008", 30));// 误差值为+9
+		}
+		// 结束
+
 		String sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim + "' where typeserial = '"
 				+ shuiInfo + "_bt' and tag = 0";
 		try {
@@ -202,19 +241,19 @@ public class mainThread {
 		System.out.println("<---开始查询数据--->");
 		initParameter();
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(2017, 1, 27, 11, 0, 0);//可自定义设置时间
+		calendar.set(2017, 1, 27, 11, 0, 0);// 可自定义设置时间
 		Date date = calendar.getTime();
 		String reachtime = sdf.format(date);
-//		query("IMTAG.JL-393023", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393136", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393026", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393025", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393027", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393028", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393143", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393144", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393024", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
+		// query("IMTAG.JL-393023", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393136", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393026", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393025", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393027", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393028", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393143", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393144", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393024", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
 		query("IMTAG.JL-390005", 13, "xiaofangbengzhan_data", reachtime);
 		System.out.println("<---结束查询数据--->");
 	}
