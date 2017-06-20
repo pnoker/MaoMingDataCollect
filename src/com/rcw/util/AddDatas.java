@@ -10,6 +10,7 @@ public class AddDatas {
 		int times = 0;
 		String sql = "select * from add_data where serial = '" + serial + "'";
 		try {
+			System.out.println(sql);
 			ResultSet rs = sqlserver.executeQuery(sql);
 			while (rs.next()) {
 				times = rs.getInt("times");
@@ -18,12 +19,12 @@ public class AddDatas {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		if (totalTimes >= times) {
+		if (times >= totalTimes) {
 			addTimes(serial, totalTimes);// 如果大于等于总次数，就一直保持该次数
 		} else {
 			addTimes(serial, times + 1);// 否则次数+1
 		}
-
+		System.out.println(times);
 		return times;
 	}
 
@@ -36,5 +37,9 @@ public class AddDatas {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void main(String[] args) {
+		AddDatas.getTimes("sia001", 720);
 	}
 }

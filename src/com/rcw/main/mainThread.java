@@ -240,20 +240,17 @@ public class mainThread {
 	public void tool() throws Exception {
 		System.out.println("<---开始查询数据--->");
 		initParameter();
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(2017, 1, 27, 11, 0, 0);// 可自定义设置时间
-		Date date = calendar.getTime();
-		String reachtime = sdf.format(date);
-		// query("IMTAG.JL-393023", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393136", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393026", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393025", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393027", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393028", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393143", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393144", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-393024", 1, "shui_data", reachtime);
-		// query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
+		String reachtime = sdf.format(new Date());
+		query("IMTAG.JL-393023", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393136", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393026", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393025", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393027", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393028", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393143", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393144", 1, "shui_data", reachtime);
+		query("IMTAG.JL-393024", 1, "shui_data", reachtime);
+		query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
 		query("IMTAG.JL-390005", 13, "xiaofangbengzhan_data", reachtime);
 		System.out.println("<---结束查询数据--->");
 	}
