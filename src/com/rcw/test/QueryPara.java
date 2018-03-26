@@ -61,7 +61,7 @@ public class QueryPara {
 			String cz = MainFunction.item.get(typeserial).split("#")[4];// 设备的从站地址
 			String md = MainFunction.item.get(typeserial).split("#")[5];// Modbus命令号
 			if (p.bytesToString(3, 13).toUpperCase().equals(longAddress + "01" + cz + md)) {
-				float value1 = (float) (p.bytesToLong(17, 20)* 0.0000001);
+				float value1 = (float) (p.bytesToLong(17, 20) * 0.0000001);
 				int value2 = (int) (p.bytesToLong(21, 24) * 0.1);
 				logWrite.write("IO的瞬时值为:" + value1);
 				logWrite.write("IO的累计值为:" + value2);

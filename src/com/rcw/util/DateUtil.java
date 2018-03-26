@@ -10,7 +10,7 @@ import java.util.Date;
 public class DateUtil {
 
 	/**
-	 * @return 2016-10-21 08:33:53
+	 * @return 2016-10-21 08:33	:53
 	 */
 	public String getCompleteTime(Date date) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

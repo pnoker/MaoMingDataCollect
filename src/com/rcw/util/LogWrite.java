@@ -19,7 +19,7 @@ public class LogWrite {
 	public LogWrite() {
 		this.printUtil = new PrintUtil();
 		this.date = new DateUtil();
-		if (!(new File(path).isDirectory())) {
+		if (!(new File(path	).isDirectory())) {
 			new File(path).mkdirs();
 		}
 	}
@@ -29,8 +29,9 @@ public class LogWrite {
 		try {
 			FileOutputStream fos = new FileOutputStream(file, true);
 			fw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
-			fw.write(date.getCompleteTime(new Date()) + " " + " --> " + detail);
-			printUtil.printDetail(detail);
+			String content = date.getCompleteTime(new Date()) + " " + " --> " + detail;
+			fw.write(content);
+			printUtil.printDetail(content);
 			fw.newLine();
 			fw.flush();
 		} catch (Exception e) {

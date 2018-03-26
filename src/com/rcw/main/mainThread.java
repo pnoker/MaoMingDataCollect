@@ -3,7 +3,6 @@ package com.rcw.main;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import com.rcw.pojo.BaseInfo;
@@ -61,7 +60,7 @@ public class mainThread {
 					total = value;
 				}
 			} catch (SQLException e) {
-				System.out.println(e.getMessage());
+				logWrite.write(e.getMessage());
 			}
 
 			insert(table, info, total, reachtime);// 向数据库中只插入累计量信息，web页面显示的瞬时信息是后期计算得出来的
@@ -85,21 +84,23 @@ public class mainThread {
 			tag = 1;// 累计
 		}
 
-		/*
-		 * // 开始 用于数据修复 if (typeserial.equals("sia0001")) { value += (0.3 *
-		 * AddDatas.getTimes("sia0001", 6));// 误差值为-2 } else if
-		 * (typeserial.equals("sia0002")) { value += (-0.3 *
-		 * AddDatas.getTimes("sia0002", 720));// 误差值为+216 } else if
-		 * (typeserial.equals("sia0003")) { value += (-0.3 *
-		 * AddDatas.getTimes("sia0003", 10));// 误差值为+3 } else if
-		 * (typeserial.equals("sia0004")) { value += (-0.3 *
-		 * AddDatas.getTimes("sia0004", 480));// 误差值为+146 } else if
-		 * (typeserial.equals("sia0005")) { value += 1;// 误差值为-1 } else if
-		 * (typeserial.equals("sia0007")) { value += (0.3 *
-		 * AddDatas.getTimes("sia0007", 120));// 误差值为-38 } else if
-		 * (typeserial.equals("sia0008")) { value += -(0.3 *
-		 * AddDatas.getTimes("sia0008", 30));// 误差值为+9 } // 结束
-		 */
+		// 开始 用于数据修复
+		if (typeserial.equals("sia0001")) {
+			value += (0.3 * AddDatas.getTimes("sia0001", 6, logWrite));// 误差值为-2
+		} else if (typeserial.equals("sia0002")) {
+			value += (-0.3 * AddDatas.getTimes("sia0002", 720, logWrite));// 误差值为+216
+		} else if (typeserial.equals("sia0003")) {
+			value += (-0.3 * AddDatas.getTimes("sia0003", 10, logWrite));// 误差值为+3
+		} else if (typeserial.equals("sia0004")) {
+			value += (-0.3 * AddDatas.getTimes("sia0004", 480, logWrite));// 误差值为+146
+		} else if (typeserial.equals("sia0005")) {
+			value += 1;// 误差值为-1
+		} else if (typeserial.equals("sia0007")) {
+			value += (0.3 * AddDatas.getTimes("sia0007", 120, logWrite));// 误差值为-38
+		} else if (typeserial.equals("sia0008")) {
+			value += -(0.3 * AddDatas.getTimes("sia0008", 30, logWrite));// 误差值为+9
+		} // 结束
+
 		String sql = "insert into " + table + "(typeserial,tag, value,reachtime)values('" + typeserial + "'," + tag
 				+ "," + value + ",'" + reachtime + "')";
 		try {
@@ -107,7 +108,7 @@ public class mainThread {
 			logWrite.write(sql);
 			connect.free();
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 	}
 
@@ -117,28 +118,30 @@ public class mainThread {
 	public void updataOpc(float total, String shuiInfo, String reachtim) {
 		Sqlserver connect = new Sqlserver();
 
-		/*
-		 * // 开始 用于数据修复 if (shuiInfo.equals("sia0001")) { total += (0.3 *
-		 * AddDatas.getTimes("sia0001", 6));// 误差值为-2 } else if
-		 * (shuiInfo.equals("sia0002")) { total += (-0.3 *
-		 * AddDatas.getTimes("sia0002", 720));// 误差值为+216 } else if
-		 * (shuiInfo.equals("sia0003")) { total += (-0.3 *
-		 * AddDatas.getTimes("sia0003", 10));// 误差值为+3 } else if
-		 * (shuiInfo.equals("sia0004")) { total += (-0.3 *
-		 * AddDatas.getTimes("sia0004", 480));// 误差值为+146 } else if
-		 * (shuiInfo.equals("sia0005")) { total += 1;// 误差值为-1 } else if
-		 * (shuiInfo.equals("sia0007")) { total += (0.3 *
-		 * AddDatas.getTimes("sia0007", 120));// 误差值为-38 } else if
-		 * (shuiInfo.equals("sia0008")) { total += -(0.3 *
-		 * AddDatas.getTimes("sia0008", 30));// 误差值为+9 } // 结束
-		 */
+		// 开始 用于数据修复
+		if (shuiInfo.equals("sia0001")) {
+			total += (0.3 * AddDatas.getTimes("sia0001", 6, logWrite));// 误差值为-2
+		} else if (shuiInfo.equals("sia0002")) {
+			total += (-0.3 * AddDatas.getTimes("sia0002", 720, logWrite));// 误差值为+216
+		} else if (shuiInfo.equals("sia0003")) {
+			total += (-0.3 * AddDatas.getTimes("sia0003", 10, logWrite));// 误差值为+3
+		} else if (shuiInfo.equals("sia0004")) {
+			total += (-0.3 * AddDatas.getTimes("sia0004", 480, logWrite));// 误差值为+146
+		} else if (shuiInfo.equals("sia0005")) {
+			total += 1;// 误差值为-1
+		} else if (shuiInfo.equals("sia0007")) {
+			total += (0.3 * AddDatas.getTimes("sia0007", 120, logWrite));// 误差值为-38
+		} else if (shuiInfo.equals("sia0008")) {
+			total += -(0.3 * AddDatas.getTimes("sia0008", 30, logWrite));// 误差值为+9
+		} // 结束
+
 		String sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim + "' where typeserial = '"
 				+ shuiInfo + "_bt' and tag = 0";
 		try {
 			connect.executeUpdate(sente);// 更新表头值
 			logWrite.write(sente);
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 		if (shuiInfo.equals("sia0001")) {
 			total += 42959;
@@ -175,7 +178,7 @@ public class mainThread {
 					+ shuiInfo + "_0' and tag = 0";
 			connect.executeUpdate(sente);// 更新瞬时量
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 
 		sente = "update [shui_opc] set value = " + total + ",reachtime = '" + reachtim + "' where typeserial = '"
@@ -185,7 +188,7 @@ public class mainThread {
 			logWrite.write(sente);
 			connect.free();
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 	}
 
@@ -200,7 +203,7 @@ public class mainThread {
 			connect.executeUpdate(sente);
 			logWrite.write(sente);
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 		sente = "update [shui_opc] set value = " + flow + ",reachtime = '" + reachtim + "' where typeserial =  '" + info
 				+ "_0'";
@@ -209,7 +212,7 @@ public class mainThread {
 			logWrite.write(sente);
 			connect.free();
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			logWrite.write(e.getMessage());
 		}
 	}
 
@@ -235,19 +238,19 @@ public class mainThread {
 		System.out.println("<---开始查询数据--->");
 		initParameter();
 		String reachtime = sdf.format(new Date());
-//		query("IMTAG.JL-393024", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393023", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393143", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393144", 1, "shui_data", reachtime);
-//		
-//		query("IMTAG.JL-393136", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393026", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393025", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-393027", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393024", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393023", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393143", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393144", 1, "shui_data", reachtime);
+		//
+		// query("IMTAG.JL-393136", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393026", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393025", 1, "shui_data", reachtime);
+		// query("IMTAG.JL-393027", 1, "shui_data", reachtime);
 		query("IMTAG.JL-393028", 1, "shui_data", reachtime);
-//		query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
-//		query("IMTAG.JL-390005", 13, "xiaofangbengzhan_data", reachtime);
-		
+		// query("IMTAG.JL-390004", 13, "xiaofangbengzhan_data", reachtime);
+		// query("IMTAG.JL-390005", 13, "xiaofangbengzhan_data", reachtime);
+
 		System.out.println("<---结束查询数据--->");
 	}
 

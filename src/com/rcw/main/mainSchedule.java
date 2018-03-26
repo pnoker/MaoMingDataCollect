@@ -19,7 +19,8 @@ public class mainSchedule {
 		System.out.println("开始茂名数据采集定时任务");
 		try {
 			JobDetail jobDetail = JobBuilder.newJob(mainJob.class).withIdentity("mainJob", "job-group").build();
-			CronTrigger cronTrigger = TriggerBuilder.newTrigger().withIdentity("cronTrigger", "trigger-group").withSchedule(CronScheduleBuilder.cronSchedule("0 0 * * * ?")).build();
+			CronTrigger cronTrigger = TriggerBuilder.newTrigger().withIdentity("cronTrigger", "trigger-group")
+					.withSchedule(CronScheduleBuilder.cronSchedule("0 10 * * * ?")).build();
 			SchedulerFactory sFactory = new StdSchedulerFactory();
 			Scheduler scheduler = sFactory.getScheduler();
 			scheduler.scheduleJob(jobDetail, cronTrigger);
